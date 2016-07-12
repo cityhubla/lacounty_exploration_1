@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>lacounty exploration 1</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.20.1/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.20.1/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0;
+            color:white;
+            font-family: lato;}
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+        #info {
+            position:absolute;
+            padding: 25px;
+            background-color: rgba(0, 0, 0, .25);
+            width:250px
+        }
+        #Residential{color:#fdc487;text-align: center;}
+        #Condocon{  color: #fdc487;
+                    border-color: white;
+                    border-style: solid;
+                    border-width: 2px;
+                    text-align: center;    
+        }
+        #Commercial{color:#f27397;text-align: center;}
+        #Industrial{color:#80a5d6;text-align: center;}
+        #Other{color:#bfbfbf;text-align: center;}
+        @media screen and (max-width: 40em) {
+        #info{font-size: xx-small;}
+        }
+        
+        .mapboxgl-popup {
+            max-width: 400px;
+            font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+            color:black;
+        }
+    </style>
+</head>
+<body>
+
+<div id='map'></div>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoiY3J1emluNzN2dyIsImEiOiI3RDdhUi1NIn0.jaEqREZw7QQMRafKPNBdmA';
+var map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: 'mapbox://styles/cruzin73vw/ciqj2epb4000fbjky78g6idvb', //stylesheet location
+    center: [-118.2621, 34.0267], // starting position
+    zoom: 11, // starting zoom
+    hash: true,
+    minZoom:11
+});
+    
+map.on('load', function () {
+    map.addSource('cities', {
+        type: 'vector',
+        url: 'http://104.236.162.144:8000/cities/meta.json?vectortileflag=true'
+    });
+    map.addLayer({
+        "id": "la_stacked_line",
+        "type": "line",
+        "source": "cities",
+        "source-layer": "cities",
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round"
+        },
+        "paint": {
+            "line-color": "#000",
+            "line-width": 2,
+            "line-opacity": .5,
+        }
+    });
+    
+     map.addLayer({
+        "id": "la_stacked_fill",
+        "type": "fill",
+        "source": "cities",
+        "source-layer": "cities",
+        "layout": {},
+        "paint": {
+            "fill-color": "#FFF",
+            "fill-opacity": .02
+        }
+    });
+    
+    map.addLayer({
+        "id": "la_stacked_fill-hover",
+        "type": "fill",
+        "source": "cities",
+        "source-layer": "cities",
+        "layout": {},
+        "paint": {
+            "fill-color": "#FFF",
+            "fill-opacity": .08,
+        },
+        "filter": ["==", "NAME", ""]
+    });
+    
+    map.addSource('lastacked', {
+        type: 'vector',
+        url: 'http://104.236.162.144:8000/la_stacked/meta.json?vectortileflag=true'
+    });
+    map.addLayer({
+        "id": "la_stacked",
+        "type": "fill",
+        "source": "lastacked",
+        "source-layer": "la_stacked",
+        'layout': {},
+        'paint': {
+            'fill-color': {
+                property:'UseCodeDes',
+                type:'categorical',
+                stops:[
+                    ['Residential','#fdc487'],
+                    ['Commercial','#f27397'],
+                    ['Industrial','#80a5d6'],
+                    ['Dry Farm','#bfbfbf'],
+                    ['Institutional','#bfbfbf'],
+                    ['Recreational','#bfbfbf']
+                ]
+            },
+            'fill-opacity': 0.1
+        }
+    });
+
+    map.addLayer({
+        "id": "la_stacked_condocon",
+        "type": "line",
+        "source": "lastacked",
+        "source-layer": "la_stacked",
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round"
+        },
+        "paint": {
+            "line-color": "#FFF",
+            "line-width": 1,
+            "line-opacity": .5,
+        },
+        "filter": ["==", "UseCodeD_3", "Condo Conversion"]
+    });
+    
+    map.on("mousemove", function(e) {
+        var features = map.queryRenderedFeatures(e.point, { layers: ["la_stacked_fill"] });
+        console.log(features[0].properties.NAME);
+        if (features.length) {
+            map.setFilter("la_stacked_fill-hover", ["==", "NAME", features[0].properties.NAME]);
+        } else {
+            map.setFilter("la_stacked_fill-hover", ["==", "NAME", ""]);
+        }
+    });
+    map.on('mousemove', function (e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ['la_stacked'] });
+    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+    });
+    // Reset the route-hover layer's filter when the mouse leaves the map
+    map.on("mouseout", function() {
+        map.setFilter("la_stacked_fill-hover", ["==", "name", ""]);
+    });
+});    
+    
+    map.on('click', function (e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ['la_stacked'] });
+    if (!features.length) {
+        return;
+    }
+    console.log(features);
+    var feature = features[0];
+
+    var popup = new mapboxgl.Popup()
+        .setLngLat(map.unproject(e.point))
+        .setHTML("<p>This Lot has: "+features.length+" parcels")
+        .addTo(map);
+});
+</script>
+<div id="info">
+    <h2>lacounty exploration 1 | stacked properties</h1>
+    <h3 id="Residential">Residential</h3>
+    <h3 id="Condocon">Condo Conversion</h3>
+    <h3 id="Commercial">Commerical</h3>
+    <h3 id="Industrial">Industrial</h3>
+    <p>There are approximately 316,743 lots in Los Angeles County having multiple parcels on just one lot. These are called stacked parcels which could be condominiums, possessory interests or mobile homes. This map shows where they are. Variations of the color means the number of parcels on each lot. The more intense the color, the more parcels on the lot.</p>
+    <p>This exploratory map is intended for discussion purposes. There will be discrepancies, map info on <a href="https://github.com/cityhubla/lacounty_exploration_1">GITHUB</a></p>
+    <p>made by <a href="https://twitter.com/theworksla">theworksLA</a></p>
+    </div>
+</body>
+</html>
