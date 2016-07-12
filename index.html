@@ -55,7 +55,7 @@ var map = new mapboxgl.Map({
 map.on('load', function () {
     map.addSource('cities', {
         type: 'vector',
-        url: 'https://104.236.162.144:8000/cities/meta.json?vectortileflag=true'
+        url: '104.236.162.144:8000/cities/meta.json?vectortileflag=true'
     });
     map.addLayer({
         "id": "la_stacked_line",
@@ -100,7 +100,7 @@ map.on('load', function () {
     
     map.addSource('lastacked', {
         type: 'vector',
-        url: 'https://104.236.162.144:8000/la_stacked/meta.json?vectortileflag=true'
+        url: '104.236.162.144:8000/la_stacked/meta.json?vectortileflag=true'
     });
     map.addLayer({
         "id": "la_stacked",
