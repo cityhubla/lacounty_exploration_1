@@ -56,7 +56,7 @@ var stackedurl="http://104.236.162.144:8000/la_stacked/"
 map.on('load', function () {
     map.addSource('cities', {
         type: 'vector',
-        url: ""+cityurl+"/meta.json?vectortileflag=true"
+        url: ""+cityurl+"meta.json?vectortileflag=true"
     });
     map.addLayer({
         "id": "la_stacked_line",
@@ -101,7 +101,7 @@ map.on('load', function () {
     
     map.addSource('lastacked', {
         type: 'vector',
-        url: ""+stackedurl+"/meta.json?vectortileflag=true"
+        url: ""+stackedurl+"meta.json?vectortileflag=true"
     });
     map.addLayer({
         "id": "la_stacked",
